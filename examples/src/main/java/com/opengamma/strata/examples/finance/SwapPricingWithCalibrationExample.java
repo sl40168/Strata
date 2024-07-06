@@ -5,13 +5,6 @@
  */
 package com.opengamma.strata.examples.finance;
 
-import static com.opengamma.strata.measure.StandardComponents.marketDataFactory;
-
-import java.io.File;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.opengamma.strata.basics.ReferenceData;
@@ -47,6 +40,12 @@ import com.opengamma.strata.report.ReportCalculationResults;
 import com.opengamma.strata.report.trade.TradeReport;
 import com.opengamma.strata.report.trade.TradeReportTemplate;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import static com.opengamma.strata.measure.StandardComponents.marketDataFactory;
+
 /**
  * Example to illustrate using the calculation API to price a swap.
  * <p>
@@ -65,32 +64,32 @@ public class SwapPricingWithCalibrationExample {
   /**
    * The location of the data files.
    */
-  private static final String PATH_CONFIG = "src/main/resources/";
+//  private static final String PATH_CONFIG = "src/main/resources/";
   /**
    * The location of the curve calibration groups file.
    */
   private static final ResourceLocator GROUPS_RESOURCE =
-      ResourceLocator.ofFile(new File(PATH_CONFIG + "example-calibration/curves/groups.csv"));
+      ResourceLocator.ofClasspath("example-calibration/curves/groups.csv");
   /**
    * The location of the curve calibration settings file.
    */
   private static final ResourceLocator SETTINGS_RESOURCE =
-      ResourceLocator.ofFile(new File(PATH_CONFIG + "example-calibration/curves/settings.csv"));
+      ResourceLocator.ofClasspath("example-calibration/curves/settings.csv");
   /**
    * The location of the curve calibration nodes file.
    */
   private static final ResourceLocator CALIBRATION_RESOURCE =
-      ResourceLocator.ofFile(new File(PATH_CONFIG + "example-calibration/curves/calibrations.csv"));
+      ResourceLocator.ofClasspath("example-calibration/curves/calibrations.csv");
   /**
    * The location of the market quotes file.
    */
   private static final ResourceLocator QUOTES_RESOURCE =
-      ResourceLocator.ofFile(new File(PATH_CONFIG + "example-calibration/quotes/quotes.csv"));
+      ResourceLocator.ofClasspath("example-calibration/quotes/quotes.csv");
   /**
    * The location of the historical fixing file.
    */
   private static final ResourceLocator FIXINGS_RESOURCE =
-      ResourceLocator.ofFile(new File(PATH_CONFIG + "example-marketdata/historical-fixings/usd-libor-3m.csv"));
+      ResourceLocator.ofClasspath("example-marketdata/historical-fixings/usd-libor-3m.csv");
 
   /**
    * Runs the example, pricing the instruments, producing the output as an ASCII table.
