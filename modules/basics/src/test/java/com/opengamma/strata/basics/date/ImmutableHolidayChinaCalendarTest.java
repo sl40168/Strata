@@ -28,11 +28,13 @@ public class ImmutableHolidayChinaCalendarTest {
 
     @Test
     public void testChinaIBCalendar() {
+
+
         ImmutableList<LocalDate> holidays = ImmutableList.of(FEB_10_2024, FEB_11_2024, FEB_12_2024, FEB_13_2024, FEB_14_2024, FEB_15_2024, FEB_16_2024,
                 FEB_17_2024);
         ImmutableList<LocalDate> workingWeekends = ImmutableList.of(FEB_4_2024, FEB_18_2024);
-        ImmutableHolidayCalendar calendar = ImmutableHolidayCalendar.of(chinaIB, holidays, ImmutableList.of(SATURDAY, SUNDAY), workingWeekends);
-
+//        ImmutableHolidayCalendar calendar = ImmutableHolidayCalendar.of(chinaIB, holidays, ImmutableList.of(SATURDAY, SUNDAY), workingWeekends);
+        HolidayCalendar calendar  =  HolidayCalendarIniLookup.INSTANCE.lookupAll().get("CNBE");
         for (LocalDate ww : workingWeekends) {
             Assertions.assertTrue(calendar.isBusinessDay(ww), ww::toString);
         }
