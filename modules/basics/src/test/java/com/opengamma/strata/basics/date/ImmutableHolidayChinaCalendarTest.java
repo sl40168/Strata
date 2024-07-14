@@ -12,7 +12,7 @@ import static java.time.DayOfWeek.SUNDAY;
 
 public class ImmutableHolidayChinaCalendarTest {
 
-    private static final HolidayCalendarId chinaIB = HolidayCalendarId.of("China.IB");
+    private static final HolidayCalendarId chinaIB = HolidayCalendarId.of("CNBE");
 
     private static final LocalDate FEB_4_2024 = LocalDate.of(2024, Month.FEBRUARY, 4);
     private static final LocalDate FEB_18_2024 = LocalDate.of(2024, Month.FEBRUARY, 18);

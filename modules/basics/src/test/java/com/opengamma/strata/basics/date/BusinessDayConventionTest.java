@@ -12,10 +12,7 @@ import static com.opengamma.strata.basics.date.BusinessDayConventions.MODIFIED_P
 import static com.opengamma.strata.basics.date.BusinessDayConventions.NEAREST;
 import static com.opengamma.strata.basics.date.BusinessDayConventions.NO_ADJUST;
 import static com.opengamma.strata.basics.date.BusinessDayConventions.PRECEDING;
-import static com.opengamma.strata.collect.TestHelper.assertJodaConvert;
-import static com.opengamma.strata.collect.TestHelper.assertSerialization;
-import static com.opengamma.strata.collect.TestHelper.coverEnum;
-import static com.opengamma.strata.collect.TestHelper.coverPrivateConstructor;
+import static com.opengamma.strata.collect.TestHelper.*;
 import static java.time.DayOfWeek.SATURDAY;
 import static java.time.DayOfWeek.SUNDAY;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -306,4 +303,9 @@ public class BusinessDayConventionTest {
     assertJodaConvert(BusinessDayConvention.class, MODIFIED_FOLLOWING);
   }
 
+  @Test
+  public void testSWIFTExternals() {
+    BusinessDayConvention swiftMF = BusinessDayConvention.extendedEnum().externalNames("SWIFT").lookup("MODIFIEDF");
+    assertThat(swiftMF).isEqualTo(MODIFIED_FOLLOWING);
+  }
 }
