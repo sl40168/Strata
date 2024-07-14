@@ -5,20 +5,12 @@
  */
 package com.opengamma.strata.product.swap.type;
 
-import static com.opengamma.strata.basics.currency.Currency.CHF;
-import static com.opengamma.strata.basics.currency.Currency.EUR;
-import static com.opengamma.strata.basics.currency.Currency.GBP;
-import static com.opengamma.strata.basics.currency.Currency.JPY;
-import static com.opengamma.strata.basics.currency.Currency.USD;
+import static com.opengamma.strata.basics.currency.Currency.*;
 import static com.opengamma.strata.basics.date.BusinessDayConventions.MODIFIED_FOLLOWING;
 import static com.opengamma.strata.basics.date.DayCounts.ACT_360;
 import static com.opengamma.strata.basics.date.DayCounts.ACT_365F;
 import static com.opengamma.strata.basics.date.DayCounts.THIRTY_U_360;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.CHZU;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.EUTA;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.GBLO;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.JPTO;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.USNY;
+import static com.opengamma.strata.basics.date.HolidayCalendarIds.*;
 import static com.opengamma.strata.basics.schedule.Frequency.P12M;
 import static com.opengamma.strata.basics.schedule.Frequency.P3M;
 import static com.opengamma.strata.basics.schedule.Frequency.P6M;
@@ -26,6 +18,7 @@ import static com.opengamma.strata.basics.schedule.Frequency.P6M;
 import com.opengamma.strata.basics.date.BusinessDayAdjustment;
 import com.opengamma.strata.basics.date.HolidayCalendarId;
 import com.opengamma.strata.basics.index.IborIndices;
+import com.opengamma.strata.basics.schedule.StubConvention;
 
 /**
  * Market standard Fixed-Ibor swap conventions.
@@ -181,5 +174,10 @@ final class StandardFixedIborSwapConventions {
    */
   private StandardFixedIborSwapConventions() {
   }
+
+  public static final FixedIborSwapConvention CNY_REPO_1W_3M_A365F =
+          ImmutableFixedIborSwapConvention.of("CNY_REPO_1W_3M_A365F",
+                  FixedRateSwapLegConvention.of(CNY, ACT_365F, P3M, BusinessDayAdjustment.of(MODIFIED_FOLLOWING, CNBE)),
+                  IborRateSwapLegConvention.builder().index(IborIndices.CNY_REPO_1W).stubConvention(StubConvention.SHORT_FINAL).build());
 
 }

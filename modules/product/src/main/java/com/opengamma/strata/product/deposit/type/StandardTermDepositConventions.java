@@ -9,10 +9,7 @@ import static com.opengamma.strata.basics.date.BusinessDayConventions.FOLLOWING;
 import static com.opengamma.strata.basics.date.BusinessDayConventions.MODIFIED_FOLLOWING;
 import static com.opengamma.strata.basics.date.DayCounts.ACT_360;
 import static com.opengamma.strata.basics.date.DayCounts.ACT_365F;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.CHZU;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.EUTA;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.GBLO;
-import static com.opengamma.strata.basics.date.HolidayCalendarIds.USNY;
+import static com.opengamma.strata.basics.date.HolidayCalendarIds.*;
 
 import com.opengamma.strata.basics.currency.Currency;
 import com.opengamma.strata.basics.date.BusinessDayAdjustment;
@@ -141,4 +138,11 @@ final class StandardTermDepositConventions {
   private StandardTermDepositConventions() {
   }
 
+  //CNY with standard spot T
+  public static final TermDepositConvention CNY_SHORT_DEPOSIT_T0 = ImmutableTermDepositConvention.of(
+          "CNY-SHORT-DEPOSIT-T0",
+          Currency.CNY,
+          BusinessDayAdjustment.of(FOLLOWING, CNBE),
+          ACT_365F,
+          DaysAdjustment.ofBusinessDays(0, CNBE));
 }

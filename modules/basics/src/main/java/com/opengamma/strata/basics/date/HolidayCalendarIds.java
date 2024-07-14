@@ -222,4 +222,10 @@ public final class HolidayCalendarIds {
   private HolidayCalendarIds() {
   }
 
+  /**
+   * An identifier for the holiday calendar of China Internal Bank, with code 'CNBE'.
+   * <p>
+   * This constant references the calendar for China internal bank holidays.
+   */
+  public static final HolidayCalendarId CNBE = HolidayCalendarId.of("CNBE");
 }
