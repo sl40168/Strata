@@ -149,4 +149,6 @@ public final class FixedIborSwapConventions {
   private FixedIborSwapConventions() {
   }
 
+  public static final FixedIborSwapConvention CNY_REPO_1W_3M_A365F =
+          FixedIborSwapConvention.of(StandardFixedIborSwapConventions.CNY_REPO_1W_3M_A365F.getName());
 }
