@@ -6,19 +6,22 @@
 package com.opengamma.strata.product.swap.type;
 
 import static com.opengamma.strata.basics.currency.Currency.*;
-import static com.opengamma.strata.basics.date.BusinessDayConventions.MODIFIED_FOLLOWING;
+import static com.opengamma.strata.basics.date.BusinessDayConventions.*;
 import static com.opengamma.strata.basics.date.DayCounts.ACT_360;
 import static com.opengamma.strata.basics.date.DayCounts.ACT_365F;
 import static com.opengamma.strata.basics.date.DayCounts.THIRTY_U_360;
 import static com.opengamma.strata.basics.date.HolidayCalendarIds.*;
-import static com.opengamma.strata.basics.schedule.Frequency.P12M;
-import static com.opengamma.strata.basics.schedule.Frequency.P3M;
-import static com.opengamma.strata.basics.schedule.Frequency.P6M;
+import static com.opengamma.strata.basics.schedule.Frequency.*;
 
 import com.opengamma.strata.basics.date.BusinessDayAdjustment;
+import com.opengamma.strata.basics.date.BusinessDayConventions;
+import com.opengamma.strata.basics.date.DaysAdjustment;
 import com.opengamma.strata.basics.date.HolidayCalendarId;
 import com.opengamma.strata.basics.index.IborIndices;
+import com.opengamma.strata.basics.schedule.Frequency;
 import com.opengamma.strata.basics.schedule.StubConvention;
+import com.opengamma.strata.product.swap.CompoundingMethod;
+import com.opengamma.strata.product.swap.ResetSchedule;
 
 /**
  * Market standard Fixed-Ibor swap conventions.
@@ -178,6 +181,11 @@ final class StandardFixedIborSwapConventions {
   public static final FixedIborSwapConvention CNY_REPO_1W_3M_A365F =
           ImmutableFixedIborSwapConvention.of("CNY_REPO_1W_3M_A365F",
                   FixedRateSwapLegConvention.of(CNY, ACT_365F, P3M, BusinessDayAdjustment.of(MODIFIED_FOLLOWING, CNBE)),
-                  IborRateSwapLegConvention.builder().index(IborIndices.CNY_REPO_1W).stubConvention(StubConvention.SHORT_FINAL).build());
+                  IborRateSwapLegConvention.builder().index(IborIndices.CNY_REPO_1W).stubConvention(StubConvention.SHORT_FINAL)
+                          .paymentFrequency(P3M).accrualFrequency(P3M).compoundingMethod(CompoundingMethod.NONE).currency(CNY).dayCount(ACT_365F)
+                          .resetPeriods(ResetSchedule.builder().resetFrequency(P1W).businessDayAdjustment(BusinessDayAdjustment.of(FOLLOWING, CNBE)).build())
+//                          .fixingDateOffset(DaysAdjustment.ofBusinessDays(-1, CNBE))
+                          .build(),
+                  DaysAdjustment.ofBusinessDays(1, CNBE, BusinessDayAdjustment.of(FOLLOWING, CNBE)));
 
 }

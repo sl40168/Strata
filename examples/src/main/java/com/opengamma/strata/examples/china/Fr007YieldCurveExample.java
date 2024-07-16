@@ -34,6 +34,7 @@ import com.opengamma.strata.product.AttributeType;
 import com.opengamma.strata.product.Trade;
 import com.opengamma.strata.product.TradeInfo;
 import com.opengamma.strata.product.common.BuySell;
+import com.opengamma.strata.product.swap.SwapTrade;
 import com.opengamma.strata.product.swap.type.FixedIborSwapConventions;
 import com.opengamma.strata.report.ReportCalculationResults;
 import com.opengamma.strata.report.trade.TradeReport;
@@ -88,11 +89,11 @@ public class Fr007YieldCurveExample {
 
     //-----------------------------------------------------------------------
     // create swap trades
-    private static List<Trade> createSwapTrades() {
+    private static List<SwapTrade> createSwapTrades() {
         return ImmutableList.of(create2YTradedFR007IRS());
     }
 
-    private static Trade create2YTradedFR007IRS() {
+    private static SwapTrade create2YTradedFR007IRS() {
         TradeInfo tradeInfo =
                 TradeInfo.builder().id(StandardId.of("example", "1")).addAttribute(AttributeType.DESCRIPTION, "Fixed vs FR007").counterparty(StandardId.of(
                         "example", "A")).settlementDate(LocalDate.of(2024, 2, 26)).build();
@@ -104,7 +105,7 @@ public class Fr007YieldCurveExample {
     }
 
     private static void calculate(CalculationRunner runner) {
-        List<Trade> trades = createSwapTrades();
+        List<SwapTrade> trades = createSwapTrades();
 
         // the columns, specifying the measures to be calculated
         List<Column> columns = ImmutableList.of(Column.of(Measures.LEG_INITIAL_NOTIONAL), Column.of(Measures.PRESENT_VALUE),
@@ -126,6 +127,9 @@ public class Fr007YieldCurveExample {
         calendars.put(cal.getId(), cal);
         ImmutableReferenceData refData = ImmutableReferenceData.of(calendars);
 
+        for (SwapTrade trade : trades) {
+            trade.resolve(refData);
+        }
 
         // load the curve definition
         Map<CurveGroupName, RatesCurveGroupDefinition> defns = RatesCalibrationCsvLoader.load(GROUPS_RESOURCE, SETTINGS_RESOURCE, CALIBRATION_RESOURCE);
