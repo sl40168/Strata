@@ -19,17 +19,19 @@ import com.opengamma.strata.market.curve.interpolator.CurveExtrapolators;
 import com.opengamma.strata.market.curve.interpolator.CurveInterpolators;
 import com.opengamma.strata.math.impl.linearalgebra.SVDecompositionCommons;
 import com.opengamma.strata.math.impl.rootfinding.newton.BaseNewtonVectorRootFinder;
+import com.opengamma.strata.math.impl.rootfinding.newton.BroydenVectorRootFinder;
 import com.opengamma.strata.math.impl.rootfinding.newton.NewtonDefaultVectorRootFinder;
 import com.opengamma.strata.pricer.DiscountFactors;
 
 public class CfetsBootStrapResolver {
     static final double EPS = 1e-6;
-    static final double TOLERANCE = 1e-8;
+    static final double TOLERANCE = 1e-10;
     static final int MAXSTEPS = 100;
     static final HolidayCalendarId HOLIDAY_CALENDAR_ID = HolidayCalendarIds.CNBE;
 
     private final BaseNewtonVectorRootFinder rootFinder = new NewtonDefaultVectorRootFinder(TOLERANCE, TOLERANCE,
             MAXSTEPS, new SVDecompositionCommons());
+//    private final BaseNewtonVectorRootFinder rootFinder = new BroydenVectorRootFinder(TOLERANCE, TOLERANCE, MAXSTEPS);
     private final ReferenceData referenceData;
 
     public CfetsBootStrapResolver(ReferenceData referenceData) {

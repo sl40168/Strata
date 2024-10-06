@@ -34,8 +34,8 @@ public class CfetsBootStrapResolverTest {
 		return ImmutableReferenceData.of(calendars);
 	}
 
-	public static final double DELTA = 0.000000012;
-
+	public static final double DELTA_Y = 1e-8;
+	public static final double DELTA_X = 1e-8;
 	@Test
 	public void testFr007() {
 		ReferenceData refData = getRefData();
@@ -81,12 +81,12 @@ public class CfetsBootStrapResolverTest {
 
 		assertThat(curve.getXValues().toArray()).hasSize(expectedXValues.length);
 		for (int i = 0; i < expectedXValues.length; i++) {
-			new DoubleAssert(curve.getXValues().get(i)).describedAs("X value %d is not pass test.", i).isCloseTo(expectedXValues[i], Offset.offset(DELTA));
+			new DoubleAssert(curve.getXValues().get(i)).describedAs("X value %d is not pass test.", i).isCloseTo(expectedXValues[i], Offset.offset(DELTA_X));
 		}
 
 		assertThat(curve.getYValues().toArray()).hasSize(expectedYValues.length);
 		for (int i = 0; i < expectedYValues.length; i++) {
-			new DoubleAssert(curve.getYValues().get(i)).describedAs("Y value %d is not pass test.", i).isCloseTo(expectedYValues[i], Offset.offset(DELTA));
+			new DoubleAssert(curve.getYValues().get(i)).describedAs("Y value %d is not pass test.", i).isCloseTo(expectedYValues[i], Offset.offset(DELTA_Y));
 		}
 	}
 }
