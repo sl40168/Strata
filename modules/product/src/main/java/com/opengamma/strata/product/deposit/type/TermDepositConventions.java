@@ -124,6 +124,8 @@ public final class TermDepositConventions {
   public static final TermDepositConvention CHF_SHORT_DEPOSIT_T2 =
       TermDepositConvention.of(StandardTermDepositConventions.CHF_SHORT_DEPOSIT_T2.getName());
 
+  public static final TermDepositConvention CNY_SHORT_DEPOSIT_T0 =
+		  TermDepositConvention.of(StandardTermDepositConventions.CNY_SHORT_DEPOSIT_T0.getName());
   //-------------------------------------------------------------------------
   /**
    * Restricted constructor.

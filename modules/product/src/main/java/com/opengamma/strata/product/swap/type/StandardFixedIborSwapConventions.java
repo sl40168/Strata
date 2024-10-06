@@ -188,4 +188,14 @@ final class StandardFixedIborSwapConventions {
                           .build(),
                   DaysAdjustment.ofBusinessDays(1, CNBE, BusinessDayAdjustment.of(FOLLOWING, CNBE)));
 
+
+  public static final FixedIborSwapConvention CNY_REPO_1W_1M_A365F =
+          ImmutableFixedIborSwapConvention.of("CNY_REPO_1W_1M_A365F",
+                  FixedRateSwapLegConvention.of(CNY, ACT_365F, P1M, BusinessDayAdjustment.of(MODIFIED_FOLLOWING, CNBE)),
+                  IborRateSwapLegConvention.builder().index(IborIndices.CNY_REPO_1W).stubConvention(StubConvention.SHORT_FINAL)
+                          .paymentFrequency(P1M).accrualFrequency(P1M).compoundingMethod(CompoundingMethod.NONE).currency(CNY).dayCount(ACT_365F)
+                          .resetPeriods(ResetSchedule.builder().resetFrequency(P1W).businessDayAdjustment(BusinessDayAdjustment.of(FOLLOWING, CNBE)).build())
+//                          .fixingDateOffset(DaysAdjustment.ofBusinessDays(-1, CNBE))
+                          .build(),
+                  DaysAdjustment.ofBusinessDays(1, CNBE, BusinessDayAdjustment.of(FOLLOWING, CNBE)));
 }

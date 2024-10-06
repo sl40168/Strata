@@ -97,7 +97,7 @@ public class Fr007YieldCurveExample {
         TradeInfo tradeInfo =
                 TradeInfo.builder().id(StandardId.of("example", "1")).addAttribute(AttributeType.DESCRIPTION, "Fixed vs FR007").counterparty(StandardId.of(
                         "example", "A")).settlementDate(LocalDate.of(2024, 2, 26)).build();
-        return FixedIborSwapConventions.CNY_REPO_1W_3M_A365F.toTrade(tradeInfo, LocalDate.of(2024, 2, 26), // the start date
+        return FixedIborSwapConventions.CNY_REPO_1W_1M_A365F.toTrade(tradeInfo, LocalDate.of(2024, 2, 26), // the start date
                 LocalDate.of(2026, 2, 26), // the end date
                 BuySell.BUY,               // indicates wheter this trade is a buy or sell
                 100_000_000,               // the notional amount
