@@ -1,4 +1,37 @@
+/*
+ * Copyright (C) 2018 - present by OpenGamma Inc. and the OpenGamma group of companies
+ *
+ * Please see distribution for license.
+ */
 package com.opengamma.strata.product.swap;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.opengamma.strata.basics.value.ValueSchedule.ALWAYS_0;
+import static com.opengamma.strata.basics.value.ValueSchedule.ALWAYS_1;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.function.Function;
+
+import org.joda.beans.Bean;
+import org.joda.beans.ImmutableBean;
+import org.joda.beans.JodaBeanUtils;
+import org.joda.beans.MetaBean;
+import org.joda.beans.MetaProperty;
+import org.joda.beans.gen.BeanDefinition;
+import org.joda.beans.gen.ImmutableDefaults;
+import org.joda.beans.gen.ImmutablePreBuild;
+import org.joda.beans.gen.PropertyDefinition;
+import org.joda.beans.impl.direct.DirectFieldsBeanBuilder;
+import org.joda.beans.impl.direct.DirectMetaBean;
+import org.joda.beans.impl.direct.DirectMetaProperty;
+import org.joda.beans.impl.direct.DirectMetaPropertyMap;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -21,88 +54,74 @@ import com.opengamma.strata.product.rate.IborAveragedFixing;
 import com.opengamma.strata.product.rate.IborAveragedRateComputation;
 import com.opengamma.strata.product.rate.IborRateComputation;
 import com.opengamma.strata.product.rate.RateComputation;
-import org.joda.beans.ImmutableBean;
-import org.joda.beans.gen.BeanDefinition;
-import org.joda.beans.gen.ImmutableDefaults;
-import org.joda.beans.gen.ImmutablePreBuild;
-import org.joda.beans.gen.PropertyDefinition;
-
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.function.Function;
-
-import org.joda.beans.Bean;
-import org.joda.beans.JodaBeanUtils;
-import org.joda.beans.MetaBean;
-import org.joda.beans.MetaProperty;
-import org.joda.beans.impl.direct.DirectFieldsBeanBuilder;
-import org.joda.beans.impl.direct.DirectMetaBean;
-import org.joda.beans.impl.direct.DirectMetaProperty;
-import org.joda.beans.impl.direct.DirectMetaPropertyMap;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.opengamma.strata.basics.value.ValueSchedule.ALWAYS_0;
-import static com.opengamma.strata.basics.value.ValueSchedule.ALWAYS_1;
-import static com.opengamma.strata.product.swap.IborRateResetMethod.UNWEIGHTED;
 
 /**
- * Defines the calculation of a floating rate swap leg based on an CFETS Ibor index.
+ * Defines the calculation of a floating rate swap leg based on an CFETS Ibor
+ * index.
  * <p>
  * This defines the data necessary to calculate the amount payable on the leg.
- * The amount is based on the observed value of an Ibor index such as 'REPO 7 Days' or 'SHIBOR 3M'.
- * The difference between CFETS ibor index and ISDA is that when there are multiple reset periods, the accrual rate should be compounding.
+ * The amount is based on the observed value of an Ibor index such as 'REPO 7
+ * Days' or 'SHIBOR 3M'. The difference between CFETS ibor index and ISDA is
+ * that when there are multiple reset periods, the accrual rate should be
+ * compounding.
  * <p>
- * The index is observed once for each <i>reset period</i> and referred to as a <i>fixing</i>.
- * The actual date of observation is the <i>fixing date</i>, which is relative to either
- * the start or end of the reset period.
+ * The index is observed once for each <i>reset period</i> and referred to as a
+ * <i>fixing</i>. The actual date of observation is the <i>fixing date</i>,
+ * which is relative to either the start or end of the reset period.
  * <p>
- * The reset period is typically the same as the accrual period.
- * In this case, the rate for the accrual period is based directly on the fixing.
- * If the reset period is a subdivision of the accrual period then there are multiple fixings,
- * one for each reset period.
- * In that case, the rate for the accrual period is based on an average of the fixings.
+ * The reset period is typically the same as the accrual period. In this case,
+ * the rate for the accrual period is based directly on the fixing. If the reset
+ * period is a subdivision of the accrual period then there are multiple
+ * fixings, one for each reset period. In that case, the rate for the accrual
+ * period is based on an average of the fixings.
  */
 @BeanDefinition
-public final class CfetsIborRateCalculation
-    implements RateCalculation, ImmutableBean, Serializable {
+public final class CfetsIborRateCalculation implements RateCalculation, ImmutableBean, Serializable {
+
+  /**
+   * The serialization version id.
+   */
+  private static final long serialVersionUID = 1L;
+
+  static {
+    MetaBean.register(CfetsIborRateCalculation.Meta.INSTANCE);
+  }
 
   /**
    * The day count convention.
    * <p>
    * This is used to convert dates to a numerical value.
    * <p>
-   * When building, this will default to the day count of the index if not specified.
+   * When building, this will default to the day count of the index if not
+   * specified.
    */
   @PropertyDefinition(validate = "notNull", overrideGet = true)
   private final DayCount dayCount;
   /**
    * The Ibor index.
    * <p>
-   * The rate to be paid is based on this index
-   * It will be a well known market index such as 'GBP-LIBOR-3M'.
+   * The rate to be paid is based on this index It will be a well known market
+   * index such as 'GBP-LIBOR-3M'.
    */
   @PropertyDefinition(validate = "notNull")
   private final IborIndex index;
   /**
    * The reset schedule, used when averaging rates, optional.
    * <p>
-   * Most swaps have a single fixing for each accrual period.
-   * This property allows multiple fixings to be defined by dividing the accrual periods into reset periods.
+   * Most swaps have a single fixing for each accrual period. This property allows
+   * multiple fixings to be defined by dividing the accrual periods into reset
+   * periods.
    * <p>
-   * If this property is not present, then the reset period is the same as the accrual period.
-   * If this property is present, then the accrual period is divided as per the information
-   * in the reset schedule, multiple fixing dates are calculated, and rate averaging performed.
+   * If this property is not present, then the reset period is the same as the
+   * accrual period. If this property is present, then the accrual period is
+   * divided as per the information in the reset schedule, multiple fixing dates
+   * are calculated, and rate averaging performed.
    */
   @PropertyDefinition(get = "optional")
   private final ResetSchedule resetPeriods;
   /**
-   * The base date that each fixing is made relative to, defaulted to 'PeriodStart'.
+   * The base date that each fixing is made relative to, defaulted to
+   * 'PeriodStart'.
    * <p>
    * The fixing date is relative to either the start or end of each reset period.
    * <p>
@@ -120,7 +139,8 @@ public final class CfetsIborRateCalculation
    * Note that in most cases, the reset frequency matches the accrual frequency
    * and thus there is only one fixing for the accrual period.
    * <p>
-   * When building, this will default to the fixing offset of the index if not specified.
+   * When building, this will default to the fixing offset of the index if not
+   * specified.
    */
   @PropertyDefinition(validate = "notNull")
   private final DaysAdjustment fixingDateOffset;
@@ -128,103 +148,116 @@ public final class CfetsIborRateCalculation
    * The negative rate method, defaulted to 'AllowNegative'.
    * <p>
    * This is used when the interest rate, observed or calculated, goes negative.
-   * It does not apply if the rate is fixed, such as in a stub or using {@code firstRegularRate}.
+   * It does not apply if the rate is fixed, such as in a stub or using
+   * {@code firstRegularRate}.
    * <p>
    * Defined by the 2006 ISDA definitions article 6.4.
    */
   @PropertyDefinition(validate = "notNull")
   private final NegativeRateMethod negativeRateMethod;
-
   /**
-   * The rate of the first regular reset period, optional.
-   * A 5% rate will be expressed as 0.05.
+   * The rate of the first regular reset period, optional. A 5% rate will be
+   * expressed as 0.05.
    * <p>
-   * In certain circumstances two counterparties agree the rate of the first fixing
-   * when the contract starts, and it is used in place of one observed fixing.
-   * For all other fixings, the rate is observed via the normal fixing process.
+   * In certain circumstances two counterparties agree the rate of the first
+   * fixing when the contract starts, and it is used in place of one observed
+   * fixing. For all other fixings, the rate is observed via the normal fixing
+   * process.
    * <p>
-   * This property allows the rate of the first reset period of the first <i>regular</i> accrual period
-   * to be controlled. Note that if there is an initial stub, this will be the second reset period.
-   * Other calculation elements, such as gearing or spread, still apply to the rate specified here.
+   * This property allows the rate of the first reset period of the first
+   * <i>regular</i> accrual period to be controlled. Note that if there is an
+   * initial stub, this will be the second reset period. Other calculation
+   * elements, such as gearing or spread, still apply to the rate specified here.
    * <p>
-   * If the first rate applies to the initial stub rather than the regular accrual periods
-   * it must be specified using {@code initialStub}. Alternatively, {@code firstRate} can be used.
+   * If the first rate applies to the initial stub rather than the regular accrual
+   * periods it must be specified using {@code initialStub}. Alternatively,
+   * {@code firstRate} can be used.
    * <p>
    * This property follows the definition in FpML. See also {@code firstRate}.
    */
   @PropertyDefinition(get = "optional")
   private final Double firstRegularRate;
   /**
-   * The rate of the first reset period, which may be a stub, optional.
-   * A 5% rate will be expressed as 0.05.
+   * The rate of the first reset period, which may be a stub, optional. A 5% rate
+   * will be expressed as 0.05.
    * <p>
-   * In certain circumstances two counterparties agree the rate of the first fixing
-   * when the contract starts, and it is used in place of one observed fixing.
-   * For all other fixings, the rate is observed via the normal fixing process.
+   * In certain circumstances two counterparties agree the rate of the first
+   * fixing when the contract starts, and it is used in place of one observed
+   * fixing. For all other fixings, the rate is observed via the normal fixing
+   * process.
    * <p>
    * This property allows the rate of the first reset period to be controlled,
-   * irrespective of whether that is an initial stub or a regular period.
-   * Other calculation elements, such as gearing or spread, still apply to the rate specified here.
+   * irrespective of whether that is an initial stub or a regular period. Other
+   * calculation elements, such as gearing or spread, still apply to the rate
+   * specified here.
    * <p>
-   * This property is similar to {@code firstRegularRate}.
-   * This property operates on the first reset period, whether that is an initial stub or a regular period.
-   * By contrast, {@code firstRegularRate} operates on the first regular period, and never on a stub.
+   * This property is similar to {@code firstRegularRate}. This property operates
+   * on the first reset period, whether that is an initial stub or a regular
+   * period. By contrast, {@code firstRegularRate} operates on the first regular
+   * period, and never on a stub.
    * <p>
-   * If either {@code firstRegularRate} or {@code initialStub} are present, this property is ignored.
+   * If either {@code firstRegularRate} or {@code initialStub} are present, this
+   * property is ignored.
    * <p>
-   * If this property is not present, then the first rate is observed via the normal fixing process.
+   * If this property is not present, then the first rate is observed via the
+   * normal fixing process.
    */
   @PropertyDefinition(get = "optional")
   private final Double firstRate;
   /**
-   * The offset of the first fixing date from the first adjusted reset date, optional.
+   * The offset of the first fixing date from the first adjusted reset date,
+   * optional.
    * <p>
-   * If present, this offset is used instead of {@code fixingDateOffset} for the first
-   * reset period of the swap, which will be either an initial stub or the first reset
-   * period of the first <i>regular</i> accrual period.
+   * If present, this offset is used instead of {@code fixingDateOffset} for the
+   * first reset period of the swap, which will be either an initial stub or the
+   * first reset period of the first <i>regular</i> accrual period.
    * <p>
    * The offset is applied to the base date specified by {@code fixingRelativeTo}.
    * The offset is typically a negative number of business days.
    * <p>
-   * If this property is not present, then the {@code fixingDateOffset} applies to all fixings.
+   * If this property is not present, then the {@code fixingDateOffset} applies to
+   * all fixings.
    */
   @PropertyDefinition(get = "optional")
   private final DaysAdjustment firstFixingDateOffset;
   /**
    * The rate to be used in initial stub, optional.
    * <p>
-   * The initial stub of a swap may have different rate rules to the regular accrual periods.
-   * A fixed rate may be specified, a different floating rate or a linearly interpolated floating rate.
-   * This may not be present if there is no initial stub, or if the index during the stub is the same
-   * as the main floating rate index.
+   * The initial stub of a swap may have different rate rules to the regular
+   * accrual periods. A fixed rate may be specified, a different floating rate or
+   * a linearly interpolated floating rate. This may not be present if there is no
+   * initial stub, or if the index during the stub is the same as the main
+   * floating rate index.
    * <p>
-   * If this property is not present, then the main index applies during any initial stub.
-   * If this property is present and there is no initial stub, it is ignored.
+   * If this property is not present, then the main index applies during any
+   * initial stub. If this property is present and there is no initial stub, it is
+   * ignored.
    */
   @PropertyDefinition(get = "optional")
   private final IborRateStubCalculation initialStub;
   /**
    * The rate to be used in final stub, optional.
    * <p>
-   * The final stub of a swap may have different rate rules to the regular accrual periods.
-   * A fixed rate may be specified, a different floating rate or a linearly interpolated floating rate.
-   * This may not be present if there is no final stub, or if the index during the stub is the same
-   * as the main floating rate index.
+   * The final stub of a swap may have different rate rules to the regular accrual
+   * periods. A fixed rate may be specified, a different floating rate or a
+   * linearly interpolated floating rate. This may not be present if there is no
+   * final stub, or if the index during the stub is the same as the main floating
+   * rate index.
    * <p>
-   * If this property is not present, then the main index applies during any final stub.
-   * If this property is present and there is no final stub, it is ignored.
+   * If this property is not present, then the main index applies during any final
+   * stub. If this property is present and there is no final stub, it is ignored.
    */
   @PropertyDefinition(get = "optional")
   private final IborRateStubCalculation finalStub;
   /**
    * The gearing multiplier, optional.
    * <p>
-   * This defines the gearing as an initial value and a list of adjustments.
-   * The gearing is only permitted to change at accrual period boundaries.
+   * This defines the gearing as an initial value and a list of adjustments. The
+   * gearing is only permitted to change at accrual period boundaries.
    * <p>
-   * When calculating the rate, the fixing rate is multiplied by the gearing.
-   * A gearing of 1 has no effect.
-   * If both gearing and spread exist, then the gearing is applied first.
+   * When calculating the rate, the fixing rate is multiplied by the gearing. A
+   * gearing of 1 has no effect. If both gearing and spread exist, then the
+   * gearing is applied first.
    * <p>
    * If this property is not present, then no gearing applies.
    * <p>
@@ -235,13 +268,13 @@ public final class CfetsIborRateCalculation
   /**
    * The spread rate, with a 5% rate expressed as 0.05, optional.
    * <p>
-   * This defines the spread as an initial value and a list of adjustments.
-   * The spread is only permitted to change at accrual period boundaries.
-   * Spread is a per annum rate.
+   * This defines the spread as an initial value and a list of adjustments. The
+   * spread is only permitted to change at accrual period boundaries. Spread is a
+   * per annum rate.
    * <p>
-   * When calculating the rate, the spread is added to the fixing rate.
-   * A spread of 0 has no effect.
-   * If both gearing and spread exist, then the gearing is applied first.
+   * When calculating the rate, the spread is added to the fixing rate. A spread
+   * of 0 has no effect. If both gearing and spread exist, then the gearing is
+   * applied first.
    * <p>
    * If this property is not present, then no spread applies.
    * <p>
@@ -250,150 +283,7 @@ public final class CfetsIborRateCalculation
   @PropertyDefinition(get = "optional")
   private final ValueSchedule spread;
 
-  @Override
-  public void collectCurrencies(ImmutableSet.Builder<Currency> builder) {
-    builder.add(index.getCurrency());
-    getInitialStub().ifPresent(stub -> stub.collectCurrencies(builder));
-    getFinalStub().ifPresent(stub -> stub.collectCurrencies(builder));
-  }
-
-  @Override
-  public void collectIndices(ImmutableSet.Builder<Index> builder) {
-    builder.add(index);
-    getInitialStub().ifPresent(stub -> stub.collectIndices(builder));
-    getFinalStub().ifPresent(stub -> stub.collectIndices(builder));
-  }
-
-  @Override
-  public ImmutableList<RateAccrualPeriod> createAccrualPeriods(Schedule accrualSchedule, Schedule paymentSchedule,
-      ReferenceData refData) {
-    // resolve data by schedule
-    DoubleArray resolvedGearings = firstNonNull(gearing, ALWAYS_1).resolveValues(accrualSchedule);
-    DoubleArray resolvedSpreads = firstNonNull(spread, ALWAYS_0).resolveValues(accrualSchedule);
-    // resolve against reference data once
-    DateAdjuster fixingDateAdjuster = fixingDateOffset.resolve(refData);
-    Function<SchedulePeriod, Schedule> resetScheduleFn =
-        getResetPeriods().map(rp ->
-                                  accrualSchedule.getFrequency().isMonthBased() && rp.getResetFrequency().isWeekBased() ?
-                                      rp.createSchedule(RollConventions.NONE, refData, true) :
-                                      rp.createSchedule(accrualSchedule.getRollConvention(), refData, false))
-            .orElse(null);
-    Function<LocalDate, IborIndexObservation> iborObservationFn = index.resolve(refData);
-
-    // need to use getStubs(boolean) and not getInitialStub()/getFinalStub() to ensure correct stub allocation
-    Pair<Optional<SchedulePeriod>, Optional<SchedulePeriod>> scheduleStubs =
-        accrualSchedule.getStubs(initialStub == null && finalStub != null);
-    Optional<SchedulePeriod> scheduleInitialStub = scheduleStubs.getFirst();
-    Optional<SchedulePeriod> scheduleFinalStub = scheduleStubs.getSecond();
-
-    // build accrual periods
-    ImmutableList.Builder<RateAccrualPeriod> accrualPeriods = ImmutableList.builder();
-    for (int i = 0; i < accrualSchedule.size(); i++) {
-      SchedulePeriod period = accrualSchedule.getPeriod(i);
-      RateComputation rateComputation = createRateComputation(
-          period, fixingDateAdjuster, resetScheduleFn, iborObservationFn, i, scheduleInitialStub, scheduleFinalStub, refData);
-      double yearFraction = period.yearFraction(dayCount, accrualSchedule);
-      accrualPeriods.add(new RateAccrualPeriod(
-          period, yearFraction, rateComputation, resolvedGearings.get(i), resolvedSpreads.get(i), negativeRateMethod));
-    }
-    return accrualPeriods.build();
-  }
-
-  // creates the rate computation
-  private RateComputation createRateComputation(
-      SchedulePeriod period,
-      DateAdjuster fixingDateAdjuster,
-      Function<SchedulePeriod, Schedule> resetScheduleFn,
-      Function<LocalDate, IborIndexObservation> iborObservationFn,
-      int scheduleIndex,
-      Optional<SchedulePeriod> scheduleInitialStub,
-      Optional<SchedulePeriod> scheduleFinalStub,
-      ReferenceData refData) {
-
-    LocalDate fixingDate = fixingDateAdjuster.adjust(fixingRelativeTo.selectBaseDate(period));
-    if (scheduleIndex == 0 && firstFixingDateOffset != null) {
-      fixingDate = firstFixingDateOffset.resolve(refData).adjust(fixingRelativeTo.selectBaseDate(period));
-    }
-    // initial stub
-    if (scheduleInitialStub.isPresent() && scheduleIndex == 0) {
-      if (firstRate != null &&
-              firstRegularRate == null &&
-              (initialStub == null || IborRateStubCalculation.NONE.equals(initialStub))) {
-        return FixedRateComputation.of(firstRate);
-      }
-      return firstNonNull(initialStub, IborRateStubCalculation.NONE).createRateComputation(fixingDate, index, refData);
-    }
-    // final stub
-    if (scheduleFinalStub.isPresent() && scheduleFinalStub.get() == period) {
-      return firstNonNull(finalStub, IborRateStubCalculation.NONE).createRateComputation(fixingDate, index, refData);
-    }
-    // override rate
-    Double overrideFirstRate = null;
-    if (firstRegularRate != null) {
-      if (isFirstRegularPeriod(scheduleIndex, scheduleInitialStub.isPresent())) {
-        overrideFirstRate = firstRegularRate;
-      }
-    } else if (firstRate != null && scheduleIndex == 0) {
-      overrideFirstRate = firstRate;
-    }
-    // handle explicit reset periods, possible averaging
-    if (resetScheduleFn != null) {
-      return createRateComputationWithResetPeriods(
-          resetScheduleFn.apply(SchedulePeriod.of(period.getStartDate(), period.getEndDate())),
-          fixingDateAdjuster,
-          iborObservationFn,
-          scheduleIndex,
-          overrideFirstRate,
-          refData);
-    }
-    // handle possible fixed rate
-    if (overrideFirstRate != null) {
-      return FixedRateComputation.of(overrideFirstRate);
-    }
-    // simple Ibor
-    return IborRateComputation.of(iborObservationFn.apply(fixingDate));
-  }
-
-  // reset periods have been specified, which may or may not imply averaging
-  private RateComputation createRateComputationWithResetPeriods(
-      Schedule resetSchedule,
-      DateAdjuster fixingDateAdjuster,
-      Function<LocalDate, IborIndexObservation> iborObservationFn,
-      int scheduleIndex,
-      Double overrideFirstRate,
-      ReferenceData refData) {
-
-    List<IborAveragedFixing> fixings = new ArrayList<>();
-    for (int i = 0; i < resetSchedule.size(); i++) {
-      SchedulePeriod resetPeriod = resetSchedule.getPeriod(i);
-      LocalDate fixingDate = fixingDateAdjuster.adjust(fixingRelativeTo.selectBaseDate(resetPeriod));
-      if (scheduleIndex == 0 && i == 0 && firstFixingDateOffset != null) {
-        fixingDate = firstFixingDateOffset.resolve(refData).adjust(fixingRelativeTo.selectBaseDate(resetPeriod));
-      }
-      fixings.add(IborAveragedFixing.builder()
-                      .observation(iborObservationFn.apply(fixingDate))
-                      .fixedRate(overrideFirstRate != null && i == 0 ? overrideFirstRate : null)
-                      .weight(dayCount.yearFraction(resetPeriod.getStartDate(), resetPeriod.getEndDate(), resetSchedule)) //For Cfets convention, the weight of each reset cycle is its year fraction
-                      .build());
-    }
-    return IborAveragedRateComputation.of(fixings);
-  }
-
-  // is the period the first regular period
-  private boolean isFirstRegularPeriod(int scheduleIndex, boolean hasInitialStub) {
-    if (hasInitialStub) {
-      return scheduleIndex == 1;
-    } else {
-      return scheduleIndex == 0;
-    }
-  }
-
-  @Override
-  public SwapLegType getType() {
-    return SwapLegType.IBOR;
-  }
-
-  //-------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   @ImmutableDefaults
   private static void applyDefaults(Builder builder) {
     builder.fixingRelativeTo(FixingRelativeTo.PERIOD_START);
@@ -412,6 +302,156 @@ public final class CfetsIborRateCalculation
     }
   }
 
+  @Override
+  public void collectCurrencies(ImmutableSet.Builder<Currency> builder) {
+    builder.add(index.getCurrency());
+    getInitialStub().ifPresent(stub -> stub.collectCurrencies(builder));
+    getFinalStub().ifPresent(stub -> stub.collectCurrencies(builder));
+  }
+
+  @Override
+  public void collectIndices(ImmutableSet.Builder<Index> builder) {
+    builder.add(index);
+    getInitialStub().ifPresent(stub -> stub.collectIndices(builder));
+    getFinalStub().ifPresent(stub -> stub.collectIndices(builder));
+  }
+
+  @Override
+  public ImmutableList<RateAccrualPeriod> createAccrualPeriods(
+      Schedule accrualSchedule, 
+      Schedule paymentSchedule,
+      ReferenceData refData) {
+
+    // resolve data by schedule
+    DoubleArray resolvedGearings = firstNonNull(gearing, ALWAYS_1).resolveValues(accrualSchedule);
+    DoubleArray resolvedSpreads = firstNonNull(spread, ALWAYS_0).resolveValues(accrualSchedule);
+    // resolve against reference data once
+    DateAdjuster fixingDateAdjuster = fixingDateOffset.resolve(refData);
+    Function<SchedulePeriod, Schedule> resetScheduleFn = getResetPeriods()
+        .map(rp -> accrualSchedule.getFrequency().isMonthBased() && rp.getResetFrequency().isWeekBased()
+            ? rp.createSchedule(RollConventions.NONE, refData, true)
+            : rp.createSchedule(accrualSchedule.getRollConvention(), refData, false))
+        .orElse(null);
+    Function<LocalDate, IborIndexObservation> iborObservationFn = index.resolve(refData);
+
+    // need to use getStubs(boolean) and not getInitialStub()/getFinalStub() to
+    // ensure correct stub allocation
+    Pair<Optional<SchedulePeriod>, Optional<SchedulePeriod>> scheduleStubs = accrualSchedule
+        .getStubs(initialStub == null && finalStub != null);
+    Optional<SchedulePeriod> scheduleInitialStub = scheduleStubs.getFirst();
+    Optional<SchedulePeriod> scheduleFinalStub = scheduleStubs.getSecond();
+
+    // build accrual periods
+    ImmutableList.Builder<RateAccrualPeriod> accrualPeriods = ImmutableList.builder();
+    for (int i = 0; i < accrualSchedule.size(); i++) {
+      SchedulePeriod period = accrualSchedule.getPeriod(i);
+      RateComputation rateComputation = createRateComputation(period, fixingDateAdjuster, resetScheduleFn,
+          iborObservationFn, i, scheduleInitialStub, scheduleFinalStub, refData);
+      double yearFraction = period.yearFraction(dayCount, accrualSchedule);
+      accrualPeriods.add(new RateAccrualPeriod(period, yearFraction, rateComputation, resolvedGearings.get(i),
+          resolvedSpreads.get(i), negativeRateMethod));
+    }
+    return accrualPeriods.build();
+  }
+
+  // creates the rate computation
+  private RateComputation createRateComputation(SchedulePeriod period, DateAdjuster fixingDateAdjuster,
+      Function<SchedulePeriod, Schedule> resetScheduleFn,
+      Function<LocalDate, IborIndexObservation> iborObservationFn, int scheduleIndex,
+      Optional<SchedulePeriod> scheduleInitialStub, Optional<SchedulePeriod> scheduleFinalStub,
+      ReferenceData refData) {
+
+    LocalDate fixingDate = fixingDateAdjuster.adjust(fixingRelativeTo.selectBaseDate(period));
+    if (scheduleIndex == 0 && firstFixingDateOffset != null) {
+      fixingDate = firstFixingDateOffset.resolve(refData).adjust(fixingRelativeTo.selectBaseDate(period));
+    }
+    // initial stub
+    if (scheduleInitialStub.isPresent() && scheduleIndex == 0) {
+      if (firstRate != null && firstRegularRate == null
+          && (initialStub == null || IborRateStubCalculation.NONE.equals(initialStub))) {
+        return FixedRateComputation.of(firstRate);
+      }
+      return firstNonNull(initialStub, IborRateStubCalculation.NONE).createRateComputation(fixingDate, index,
+          refData);
+    }
+    // final stub
+    if (scheduleFinalStub.isPresent() && scheduleFinalStub.get() == period) {
+      return firstNonNull(finalStub, IborRateStubCalculation.NONE).createRateComputation(fixingDate, index,
+          refData);
+    }
+    // override rate
+    Double overrideFirstRate = null;
+    if (firstRegularRate != null) {
+      if (isFirstRegularPeriod(scheduleIndex, scheduleInitialStub.isPresent())) {
+        overrideFirstRate = firstRegularRate;
+      }
+    } else if (firstRate != null && scheduleIndex == 0) {
+      overrideFirstRate = firstRate;
+    }
+    // handle explicit reset periods, possible averaging
+    if (resetScheduleFn != null) {
+      return createRateComputationWithResetPeriods(
+          resetScheduleFn.apply(SchedulePeriod.of(period.getStartDate(), period.getEndDate())),
+          fixingDateAdjuster, iborObservationFn, scheduleIndex, overrideFirstRate, refData);
+    }
+    // handle possible fixed rate
+    if (overrideFirstRate != null) {
+      return FixedRateComputation.of(overrideFirstRate);
+    }
+    // simple Ibor
+    return IborRateComputation.of(iborObservationFn.apply(fixingDate));
+  }
+
+  // reset periods have been specified, which may or may not imply averaging
+  private RateComputation createRateComputationWithResetPeriods(Schedule resetSchedule,
+      DateAdjuster fixingDateAdjuster, Function<LocalDate, IborIndexObservation> iborObservationFn,
+      int scheduleIndex, Double overrideFirstRate, ReferenceData refData) {
+
+    List<IborAveragedFixing> fixings = new ArrayList<>();
+    for (int i = 0; i < resetSchedule.size(); i++) {
+      SchedulePeriod resetPeriod = resetSchedule.getPeriod(i);
+      LocalDate fixingDate = fixingDateAdjuster.adjust(fixingRelativeTo.selectBaseDate(resetPeriod));
+      if (scheduleIndex == 0 && i == 0 && firstFixingDateOffset != null) {
+        fixingDate = firstFixingDateOffset.resolve(refData)
+            .adjust(fixingRelativeTo.selectBaseDate(resetPeriod));
+      }
+      fixings.add(IborAveragedFixing.builder().observation(iborObservationFn.apply(fixingDate))
+          .fixedRate(overrideFirstRate != null && i == 0 ? overrideFirstRate : null)
+          .weight(dayCount.yearFraction(resetPeriod.getStartDate(), resetPeriod.getEndDate(), resetSchedule)) // For
+                                                            // Cfets
+                                                            // convention,
+                                                            // the
+                                                            // weight
+                                                            // of
+                                                            // each
+                                                            // reset
+                                                            // cycle
+                                                            // is
+                                                            // its
+                                                            // year
+                                                            // fraction
+          .build());
+    }
+    return IborAveragedRateComputation.of(fixings);
+  }
+
+  // is the period the first regular period
+  private boolean isFirstRegularPeriod(int scheduleIndex, boolean hasInitialStub) {
+    if (hasInitialStub) {
+      return scheduleIndex == 1;
+    } else {
+      return scheduleIndex == 0;
+    }
+  }
+  
+  
+  @Override
+  public SwapLegType getType() {
+    return SwapLegType.IBOR;
+  }
+
+  // -----------------------------------------------------------------------
+  
   //------------------------- AUTOGENERATED START -------------------------
   /**
    * The meta-bean for {@code CfetsIborRateCalculation}.
@@ -424,11 +464,6 @@ public final class CfetsIborRateCalculation
   static {
     MetaBean.register(CfetsIborRateCalculation.Meta.INSTANCE);
   }
-
-  /**
-   * The serialization version id.
-   */
-  private static final long serialVersionUID = 1L;
 
   /**
    * Returns a builder used to create an instance of the bean.
@@ -483,7 +518,8 @@ public final class CfetsIborRateCalculation
    * <p>
    * This is used to convert dates to a numerical value.
    * <p>
-   * When building, this will default to the day count of the index if not specified.
+   * When building, this will default to the day count of the index if not
+   * specified.
    * @return the value of the property, not null
    */
   @Override
@@ -495,8 +531,8 @@ public final class CfetsIborRateCalculation
   /**
    * Gets the Ibor index.
    * <p>
-   * The rate to be paid is based on this index
-   * It will be a well known market index such as 'GBP-LIBOR-3M'.
+   * The rate to be paid is based on this index It will be a well known market
+   * index such as 'GBP-LIBOR-3M'.
    * @return the value of the property, not null
    */
   public IborIndex getIndex() {
@@ -507,12 +543,14 @@ public final class CfetsIborRateCalculation
   /**
    * Gets the reset schedule, used when averaging rates, optional.
    * <p>
-   * Most swaps have a single fixing for each accrual period.
-   * This property allows multiple fixings to be defined by dividing the accrual periods into reset periods.
+   * Most swaps have a single fixing for each accrual period. This property allows
+   * multiple fixings to be defined by dividing the accrual periods into reset
+   * periods.
    * <p>
-   * If this property is not present, then the reset period is the same as the accrual period.
-   * If this property is present, then the accrual period is divided as per the information
-   * in the reset schedule, multiple fixing dates are calculated, and rate averaging performed.
+   * If this property is not present, then the reset period is the same as the
+   * accrual period. If this property is present, then the accrual period is
+   * divided as per the information in the reset schedule, multiple fixing dates
+   * are calculated, and rate averaging performed.
    * @return the optional value of the property, not null
    */
   public Optional<ResetSchedule> getResetPeriods() {
@@ -521,7 +559,8 @@ public final class CfetsIborRateCalculation
 
   //-----------------------------------------------------------------------
   /**
-   * Gets the base date that each fixing is made relative to, defaulted to 'PeriodStart'.
+   * Gets the base date that each fixing is made relative to, defaulted to
+   * 'PeriodStart'.
    * <p>
    * The fixing date is relative to either the start or end of each reset period.
    * <p>
@@ -543,7 +582,8 @@ public final class CfetsIborRateCalculation
    * Note that in most cases, the reset frequency matches the accrual frequency
    * and thus there is only one fixing for the accrual period.
    * <p>
-   * When building, this will default to the fixing offset of the index if not specified.
+   * When building, this will default to the fixing offset of the index if not
+   * specified.
    * @return the value of the property, not null
    */
   public DaysAdjustment getFixingDateOffset() {
@@ -555,7 +595,8 @@ public final class CfetsIborRateCalculation
    * Gets the negative rate method, defaulted to 'AllowNegative'.
    * <p>
    * This is used when the interest rate, observed or calculated, goes negative.
-   * It does not apply if the rate is fixed, such as in a stub or using {@code firstRegularRate}.
+   * It does not apply if the rate is fixed, such as in a stub or using
+   * {@code firstRegularRate}.
    * <p>
    * Defined by the 2006 ISDA definitions article 6.4.
    * @return the value of the property, not null
@@ -566,19 +607,22 @@ public final class CfetsIborRateCalculation
 
   //-----------------------------------------------------------------------
   /**
-   * Gets the rate of the first regular reset period, optional.
-   * A 5% rate will be expressed as 0.05.
+   * Gets the rate of the first regular reset period, optional. A 5% rate will be
+   * expressed as 0.05.
    * <p>
-   * In certain circumstances two counterparties agree the rate of the first fixing
-   * when the contract starts, and it is used in place of one observed fixing.
-   * For all other fixings, the rate is observed via the normal fixing process.
+   * In certain circumstances two counterparties agree the rate of the first
+   * fixing when the contract starts, and it is used in place of one observed
+   * fixing. For all other fixings, the rate is observed via the normal fixing
+   * process.
    * <p>
-   * This property allows the rate of the first reset period of the first <i>regular</i> accrual period
-   * to be controlled. Note that if there is an initial stub, this will be the second reset period.
-   * Other calculation elements, such as gearing or spread, still apply to the rate specified here.
+   * This property allows the rate of the first reset period of the first
+   * <i>regular</i> accrual period to be controlled. Note that if there is an
+   * initial stub, this will be the second reset period. Other calculation
+   * elements, such as gearing or spread, still apply to the rate specified here.
    * <p>
-   * If the first rate applies to the initial stub rather than the regular accrual periods
-   * it must be specified using {@code initialStub}. Alternatively, {@code firstRate} can be used.
+   * If the first rate applies to the initial stub rather than the regular accrual
+   * periods it must be specified using {@code initialStub}. Alternatively,
+   * {@code firstRate} can be used.
    * <p>
    * This property follows the definition in FpML. See also {@code firstRate}.
    * @return the optional value of the property, not null
@@ -589,24 +633,29 @@ public final class CfetsIborRateCalculation
 
   //-----------------------------------------------------------------------
   /**
-   * Gets the rate of the first reset period, which may be a stub, optional.
-   * A 5% rate will be expressed as 0.05.
+   * Gets the rate of the first reset period, which may be a stub, optional. A 5% rate
+   * will be expressed as 0.05.
    * <p>
-   * In certain circumstances two counterparties agree the rate of the first fixing
-   * when the contract starts, and it is used in place of one observed fixing.
-   * For all other fixings, the rate is observed via the normal fixing process.
+   * In certain circumstances two counterparties agree the rate of the first
+   * fixing when the contract starts, and it is used in place of one observed
+   * fixing. For all other fixings, the rate is observed via the normal fixing
+   * process.
    * <p>
    * This property allows the rate of the first reset period to be controlled,
-   * irrespective of whether that is an initial stub or a regular period.
-   * Other calculation elements, such as gearing or spread, still apply to the rate specified here.
+   * irrespective of whether that is an initial stub or a regular period. Other
+   * calculation elements, such as gearing or spread, still apply to the rate
+   * specified here.
    * <p>
-   * This property is similar to {@code firstRegularRate}.
-   * This property operates on the first reset period, whether that is an initial stub or a regular period.
-   * By contrast, {@code firstRegularRate} operates on the first regular period, and never on a stub.
+   * This property is similar to {@code firstRegularRate}. This property operates
+   * on the first reset period, whether that is an initial stub or a regular
+   * period. By contrast, {@code firstRegularRate} operates on the first regular
+   * period, and never on a stub.
    * <p>
-   * If either {@code firstRegularRate} or {@code initialStub} are present, this property is ignored.
+   * If either {@code firstRegularRate} or {@code initialStub} are present, this
+   * property is ignored.
    * <p>
-   * If this property is not present, then the first rate is observed via the normal fixing process.
+   * If this property is not present, then the first rate is observed via the
+   * normal fixing process.
    * @return the optional value of the property, not null
    */
   public OptionalDouble getFirstRate() {
@@ -615,16 +664,18 @@ public final class CfetsIborRateCalculation
 
   //-----------------------------------------------------------------------
   /**
-   * Gets the offset of the first fixing date from the first adjusted reset date, optional.
+   * Gets the offset of the first fixing date from the first adjusted reset date,
+   * optional.
    * <p>
-   * If present, this offset is used instead of {@code fixingDateOffset} for the first
-   * reset period of the swap, which will be either an initial stub or the first reset
-   * period of the first <i>regular</i> accrual period.
+   * If present, this offset is used instead of {@code fixingDateOffset} for the
+   * first reset period of the swap, which will be either an initial stub or the
+   * first reset period of the first <i>regular</i> accrual period.
    * <p>
    * The offset is applied to the base date specified by {@code fixingRelativeTo}.
    * The offset is typically a negative number of business days.
    * <p>
-   * If this property is not present, then the {@code fixingDateOffset} applies to all fixings.
+   * If this property is not present, then the {@code fixingDateOffset} applies to
+   * all fixings.
    * @return the optional value of the property, not null
    */
   public Optional<DaysAdjustment> getFirstFixingDateOffset() {
@@ -635,13 +686,15 @@ public final class CfetsIborRateCalculation
   /**
    * Gets the rate to be used in initial stub, optional.
    * <p>
-   * The initial stub of a swap may have different rate rules to the regular accrual periods.
-   * A fixed rate may be specified, a different floating rate or a linearly interpolated floating rate.
-   * This may not be present if there is no initial stub, or if the index during the stub is the same
-   * as the main floating rate index.
+   * The initial stub of a swap may have different rate rules to the regular
+   * accrual periods. A fixed rate may be specified, a different floating rate or
+   * a linearly interpolated floating rate. This may not be present if there is no
+   * initial stub, or if the index during the stub is the same as the main
+   * floating rate index.
    * <p>
-   * If this property is not present, then the main index applies during any initial stub.
-   * If this property is present and there is no initial stub, it is ignored.
+   * If this property is not present, then the main index applies during any
+   * initial stub. If this property is present and there is no initial stub, it is
+   * ignored.
    * @return the optional value of the property, not null
    */
   public Optional<IborRateStubCalculation> getInitialStub() {
@@ -652,13 +705,14 @@ public final class CfetsIborRateCalculation
   /**
    * Gets the rate to be used in final stub, optional.
    * <p>
-   * The final stub of a swap may have different rate rules to the regular accrual periods.
-   * A fixed rate may be specified, a different floating rate or a linearly interpolated floating rate.
-   * This may not be present if there is no final stub, or if the index during the stub is the same
-   * as the main floating rate index.
+   * The final stub of a swap may have different rate rules to the regular accrual
+   * periods. A fixed rate may be specified, a different floating rate or a
+   * linearly interpolated floating rate. This may not be present if there is no
+   * final stub, or if the index during the stub is the same as the main floating
+   * rate index.
    * <p>
-   * If this property is not present, then the main index applies during any final stub.
-   * If this property is present and there is no final stub, it is ignored.
+   * If this property is not present, then the main index applies during any final
+   * stub. If this property is present and there is no final stub, it is ignored.
    * @return the optional value of the property, not null
    */
   public Optional<IborRateStubCalculation> getFinalStub() {
@@ -669,12 +723,12 @@ public final class CfetsIborRateCalculation
   /**
    * Gets the gearing multiplier, optional.
    * <p>
-   * This defines the gearing as an initial value and a list of adjustments.
-   * The gearing is only permitted to change at accrual period boundaries.
+   * This defines the gearing as an initial value and a list of adjustments. The
+   * gearing is only permitted to change at accrual period boundaries.
    * <p>
-   * When calculating the rate, the fixing rate is multiplied by the gearing.
-   * A gearing of 1 has no effect.
-   * If both gearing and spread exist, then the gearing is applied first.
+   * When calculating the rate, the fixing rate is multiplied by the gearing. A
+   * gearing of 1 has no effect. If both gearing and spread exist, then the
+   * gearing is applied first.
    * <p>
    * If this property is not present, then no gearing applies.
    * <p>
@@ -689,13 +743,13 @@ public final class CfetsIborRateCalculation
   /**
    * Gets the spread rate, with a 5% rate expressed as 0.05, optional.
    * <p>
-   * This defines the spread as an initial value and a list of adjustments.
-   * The spread is only permitted to change at accrual period boundaries.
-   * Spread is a per annum rate.
+   * This defines the spread as an initial value and a list of adjustments. The
+   * spread is only permitted to change at accrual period boundaries. Spread is a
+   * per annum rate.
    * <p>
-   * When calculating the rate, the spread is added to the fixing rate.
-   * A spread of 0 has no effect.
-   * If both gearing and spread exist, then the gearing is applied first.
+   * When calculating the rate, the spread is added to the fixing rate. A spread
+   * of 0 has no effect. If both gearing and spread exist, then the gearing is
+   * applied first.
    * <p>
    * If this property is not present, then no spread applies.
    * <p>
@@ -1238,7 +1292,8 @@ public final class CfetsIborRateCalculation
      * <p>
      * This is used to convert dates to a numerical value.
      * <p>
-     * When building, this will default to the day count of the index if not specified.
+     * When building, this will default to the day count of the index if not
+     * specified.
      * @param dayCount  the new value, not null
      * @return this, for chaining, not null
      */
@@ -1251,8 +1306,8 @@ public final class CfetsIborRateCalculation
     /**
      * Sets the Ibor index.
      * <p>
-     * The rate to be paid is based on this index
-     * It will be a well known market index such as 'GBP-LIBOR-3M'.
+     * The rate to be paid is based on this index It will be a well known market
+     * index such as 'GBP-LIBOR-3M'.
      * @param index  the new value, not null
      * @return this, for chaining, not null
      */
@@ -1265,12 +1320,14 @@ public final class CfetsIborRateCalculation
     /**
      * Sets the reset schedule, used when averaging rates, optional.
      * <p>
-     * Most swaps have a single fixing for each accrual period.
-     * This property allows multiple fixings to be defined by dividing the accrual periods into reset periods.
+     * Most swaps have a single fixing for each accrual period. This property allows
+     * multiple fixings to be defined by dividing the accrual periods into reset
+     * periods.
      * <p>
-     * If this property is not present, then the reset period is the same as the accrual period.
-     * If this property is present, then the accrual period is divided as per the information
-     * in the reset schedule, multiple fixing dates are calculated, and rate averaging performed.
+     * If this property is not present, then the reset period is the same as the
+     * accrual period. If this property is present, then the accrual period is
+     * divided as per the information in the reset schedule, multiple fixing dates
+     * are calculated, and rate averaging performed.
      * @param resetPeriods  the new value
      * @return this, for chaining, not null
      */
@@ -1280,7 +1337,8 @@ public final class CfetsIborRateCalculation
     }
 
     /**
-     * Sets the base date that each fixing is made relative to, defaulted to 'PeriodStart'.
+     * Sets the base date that each fixing is made relative to, defaulted to
+     * 'PeriodStart'.
      * <p>
      * The fixing date is relative to either the start or end of each reset period.
      * <p>
@@ -1304,7 +1362,8 @@ public final class CfetsIborRateCalculation
      * Note that in most cases, the reset frequency matches the accrual frequency
      * and thus there is only one fixing for the accrual period.
      * <p>
-     * When building, this will default to the fixing offset of the index if not specified.
+     * When building, this will default to the fixing offset of the index if not
+     * specified.
      * @param fixingDateOffset  the new value, not null
      * @return this, for chaining, not null
      */
@@ -1318,7 +1377,8 @@ public final class CfetsIborRateCalculation
      * Sets the negative rate method, defaulted to 'AllowNegative'.
      * <p>
      * This is used when the interest rate, observed or calculated, goes negative.
-     * It does not apply if the rate is fixed, such as in a stub or using {@code firstRegularRate}.
+     * It does not apply if the rate is fixed, such as in a stub or using
+     * {@code firstRegularRate}.
      * <p>
      * Defined by the 2006 ISDA definitions article 6.4.
      * @param negativeRateMethod  the new value, not null
@@ -1331,19 +1391,22 @@ public final class CfetsIborRateCalculation
     }
 
     /**
-     * Sets the rate of the first regular reset period, optional.
-     * A 5% rate will be expressed as 0.05.
+     * Sets the rate of the first regular reset period, optional. A 5% rate will be
+     * expressed as 0.05.
      * <p>
-     * In certain circumstances two counterparties agree the rate of the first fixing
-     * when the contract starts, and it is used in place of one observed fixing.
-     * For all other fixings, the rate is observed via the normal fixing process.
+     * In certain circumstances two counterparties agree the rate of the first
+     * fixing when the contract starts, and it is used in place of one observed
+     * fixing. For all other fixings, the rate is observed via the normal fixing
+     * process.
      * <p>
-     * This property allows the rate of the first reset period of the first <i>regular</i> accrual period
-     * to be controlled. Note that if there is an initial stub, this will be the second reset period.
-     * Other calculation elements, such as gearing or spread, still apply to the rate specified here.
+     * This property allows the rate of the first reset period of the first
+     * <i>regular</i> accrual period to be controlled. Note that if there is an
+     * initial stub, this will be the second reset period. Other calculation
+     * elements, such as gearing or spread, still apply to the rate specified here.
      * <p>
-     * If the first rate applies to the initial stub rather than the regular accrual periods
-     * it must be specified using {@code initialStub}. Alternatively, {@code firstRate} can be used.
+     * If the first rate applies to the initial stub rather than the regular accrual
+     * periods it must be specified using {@code initialStub}. Alternatively,
+     * {@code firstRate} can be used.
      * <p>
      * This property follows the definition in FpML. See also {@code firstRate}.
      * @param firstRegularRate  the new value
@@ -1355,24 +1418,29 @@ public final class CfetsIborRateCalculation
     }
 
     /**
-     * Sets the rate of the first reset period, which may be a stub, optional.
-     * A 5% rate will be expressed as 0.05.
+     * Sets the rate of the first reset period, which may be a stub, optional. A 5% rate
+     * will be expressed as 0.05.
      * <p>
-     * In certain circumstances two counterparties agree the rate of the first fixing
-     * when the contract starts, and it is used in place of one observed fixing.
-     * For all other fixings, the rate is observed via the normal fixing process.
+     * In certain circumstances two counterparties agree the rate of the first
+     * fixing when the contract starts, and it is used in place of one observed
+     * fixing. For all other fixings, the rate is observed via the normal fixing
+     * process.
      * <p>
      * This property allows the rate of the first reset period to be controlled,
-     * irrespective of whether that is an initial stub or a regular period.
-     * Other calculation elements, such as gearing or spread, still apply to the rate specified here.
+     * irrespective of whether that is an initial stub or a regular period. Other
+     * calculation elements, such as gearing or spread, still apply to the rate
+     * specified here.
      * <p>
-     * This property is similar to {@code firstRegularRate}.
-     * This property operates on the first reset period, whether that is an initial stub or a regular period.
-     * By contrast, {@code firstRegularRate} operates on the first regular period, and never on a stub.
+     * This property is similar to {@code firstRegularRate}. This property operates
+     * on the first reset period, whether that is an initial stub or a regular
+     * period. By contrast, {@code firstRegularRate} operates on the first regular
+     * period, and never on a stub.
      * <p>
-     * If either {@code firstRegularRate} or {@code initialStub} are present, this property is ignored.
+     * If either {@code firstRegularRate} or {@code initialStub} are present, this
+     * property is ignored.
      * <p>
-     * If this property is not present, then the first rate is observed via the normal fixing process.
+     * If this property is not present, then the first rate is observed via the
+     * normal fixing process.
      * @param firstRate  the new value
      * @return this, for chaining, not null
      */
@@ -1382,16 +1450,18 @@ public final class CfetsIborRateCalculation
     }
 
     /**
-     * Sets the offset of the first fixing date from the first adjusted reset date, optional.
+     * Sets the offset of the first fixing date from the first adjusted reset date,
+     * optional.
      * <p>
-     * If present, this offset is used instead of {@code fixingDateOffset} for the first
-     * reset period of the swap, which will be either an initial stub or the first reset
-     * period of the first <i>regular</i> accrual period.
+     * If present, this offset is used instead of {@code fixingDateOffset} for the
+     * first reset period of the swap, which will be either an initial stub or the
+     * first reset period of the first <i>regular</i> accrual period.
      * <p>
      * The offset is applied to the base date specified by {@code fixingRelativeTo}.
      * The offset is typically a negative number of business days.
      * <p>
-     * If this property is not present, then the {@code fixingDateOffset} applies to all fixings.
+     * If this property is not present, then the {@code fixingDateOffset} applies to
+     * all fixings.
      * @param firstFixingDateOffset  the new value
      * @return this, for chaining, not null
      */
@@ -1403,13 +1473,15 @@ public final class CfetsIborRateCalculation
     /**
      * Sets the rate to be used in initial stub, optional.
      * <p>
-     * The initial stub of a swap may have different rate rules to the regular accrual periods.
-     * A fixed rate may be specified, a different floating rate or a linearly interpolated floating rate.
-     * This may not be present if there is no initial stub, or if the index during the stub is the same
-     * as the main floating rate index.
+     * The initial stub of a swap may have different rate rules to the regular
+     * accrual periods. A fixed rate may be specified, a different floating rate or
+     * a linearly interpolated floating rate. This may not be present if there is no
+     * initial stub, or if the index during the stub is the same as the main
+     * floating rate index.
      * <p>
-     * If this property is not present, then the main index applies during any initial stub.
-     * If this property is present and there is no initial stub, it is ignored.
+     * If this property is not present, then the main index applies during any
+     * initial stub. If this property is present and there is no initial stub, it is
+     * ignored.
      * @param initialStub  the new value
      * @return this, for chaining, not null
      */
@@ -1421,13 +1493,14 @@ public final class CfetsIborRateCalculation
     /**
      * Sets the rate to be used in final stub, optional.
      * <p>
-     * The final stub of a swap may have different rate rules to the regular accrual periods.
-     * A fixed rate may be specified, a different floating rate or a linearly interpolated floating rate.
-     * This may not be present if there is no final stub, or if the index during the stub is the same
-     * as the main floating rate index.
+     * The final stub of a swap may have different rate rules to the regular accrual
+     * periods. A fixed rate may be specified, a different floating rate or a
+     * linearly interpolated floating rate. This may not be present if there is no
+     * final stub, or if the index during the stub is the same as the main floating
+     * rate index.
      * <p>
-     * If this property is not present, then the main index applies during any final stub.
-     * If this property is present and there is no final stub, it is ignored.
+     * If this property is not present, then the main index applies during any final
+     * stub. If this property is present and there is no final stub, it is ignored.
      * @param finalStub  the new value
      * @return this, for chaining, not null
      */
@@ -1439,12 +1512,12 @@ public final class CfetsIborRateCalculation
     /**
      * Sets the gearing multiplier, optional.
      * <p>
-     * This defines the gearing as an initial value and a list of adjustments.
-     * The gearing is only permitted to change at accrual period boundaries.
+     * This defines the gearing as an initial value and a list of adjustments. The
+     * gearing is only permitted to change at accrual period boundaries.
      * <p>
-     * When calculating the rate, the fixing rate is multiplied by the gearing.
-     * A gearing of 1 has no effect.
-     * If both gearing and spread exist, then the gearing is applied first.
+     * When calculating the rate, the fixing rate is multiplied by the gearing. A
+     * gearing of 1 has no effect. If both gearing and spread exist, then the
+     * gearing is applied first.
      * <p>
      * If this property is not present, then no gearing applies.
      * <p>
@@ -1460,13 +1533,13 @@ public final class CfetsIborRateCalculation
     /**
      * Sets the spread rate, with a 5% rate expressed as 0.05, optional.
      * <p>
-     * This defines the spread as an initial value and a list of adjustments.
-     * The spread is only permitted to change at accrual period boundaries.
-     * Spread is a per annum rate.
+     * This defines the spread as an initial value and a list of adjustments. The
+     * spread is only permitted to change at accrual period boundaries. Spread is a
+     * per annum rate.
      * <p>
-     * When calculating the rate, the spread is added to the fixing rate.
-     * A spread of 0 has no effect.
-     * If both gearing and spread exist, then the gearing is applied first.
+     * When calculating the rate, the spread is added to the fixing rate. A spread
+     * of 0 has no effect. If both gearing and spread exist, then the gearing is
+     * applied first.
      * <p>
      * If this property is not present, then no spread applies.
      * <p>
