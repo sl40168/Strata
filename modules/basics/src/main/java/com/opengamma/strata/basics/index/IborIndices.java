@@ -770,9 +770,4 @@ public final class IborIndices {
    */
   private IborIndices() {
   }
-
-  /**
-   * 7 Days Repo rate of CNY
-   */
-  public  static final IborIndex CNY_REPO_1W = IborIndex.of("CNY-REPO-1W");
 }
