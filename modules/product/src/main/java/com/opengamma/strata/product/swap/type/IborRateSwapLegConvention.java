@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import com.opengamma.strata.product.swap.CfetsIborRateCalculation;
 import org.joda.beans.Bean;
 import org.joda.beans.ImmutableBean;
 import org.joda.beans.JodaBeanUtils;
@@ -522,13 +523,20 @@ public final class IborRateSwapLegConvention
             .finalExchange(notionalExchange)
             .initialExchange(notionalExchange)
             .amount(ValueSchedule.of(notional)).build())
-        .calculation(IborRateCalculation.builder()
-            .index(index)
-            .dayCount(getDayCount())
-            .fixingRelativeTo(getFixingRelativeTo())
-            .fixingDateOffset(getFixingDateOffset())
-            .spread(spread != 0 ? ValueSchedule.of(spread) : null)
-            .build())
+        .calculation(
+            getIndex().getCurrency().equals(Currency.CNY) ?
+                CfetsIborRateCalculation.builder()
+                    .index(index)
+                    .dayCount(getDayCount())
+                    .fixingRelativeTo(getFixingRelativeTo())
+                    .fixingDateOffset(getFixingDateOffset())
+                    .spread(spread != 0 ? ValueSchedule.of(spread) : null).build() :
+                IborRateCalculation.builder()
+                    .index(index)
+                    .dayCount(getDayCount())
+                    .fixingRelativeTo(getFixingRelativeTo())
+                    .fixingDateOffset(getFixingDateOffset())
+                    .spread(spread != 0 ? ValueSchedule.of(spread) : null).build())
         .build();
   }
 
