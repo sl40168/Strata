@@ -530,13 +530,15 @@ public final class IborRateSwapLegConvention
                     .dayCount(getDayCount())
                     .fixingRelativeTo(getFixingRelativeTo())
                     .fixingDateOffset(getFixingDateOffset())
-                    .spread(spread != 0 ? ValueSchedule.of(spread) : null).build() :
+                    .spread(spread != 0 ? ValueSchedule.of(spread) : null)
+                    .resetPeriods(resetPeriods).build() :
                 IborRateCalculation.builder()
                     .index(index)
                     .dayCount(getDayCount())
                     .fixingRelativeTo(getFixingRelativeTo())
                     .fixingDateOffset(getFixingDateOffset())
-                    .spread(spread != 0 ? ValueSchedule.of(spread) : null).build())
+                    .spread(spread != 0 ? ValueSchedule.of(spread) : null)
+                    .resetPeriods(resetPeriods).build())
         .build();
   }
 

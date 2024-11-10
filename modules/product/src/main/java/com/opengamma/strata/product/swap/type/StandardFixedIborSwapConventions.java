@@ -180,12 +180,13 @@ final class StandardFixedIborSwapConventions {
 
   public static final FixedIborSwapConvention CNY_REPO_1W_3M_A365F =
           ImmutableFixedIborSwapConvention.of("CNY_REPO_1W_3M_A365F",
-                  FixedRateSwapLegConvention.of(CNY, ACT_365F, P3M, BusinessDayAdjustment.of(MODIFIED_FOLLOWING, CNBE)),
+                  FixedRateSwapLegConvention.of(CNY, ACT_365F, P3M, BusinessDayAdjustment.of(FOLLOWING, CNBE)),
                   IborRateSwapLegConvention.builder().index(IborIndices.CNY_REPO_1W).stubConvention(StubConvention.SHORT_FINAL)
-                          .paymentFrequency(P3M).accrualFrequency(P3M).compoundingMethod(CompoundingMethod.NONE).currency(CNY).dayCount(ACT_365F)
-                          .resetPeriods(ResetSchedule.builder().resetFrequency(P1W).businessDayAdjustment(BusinessDayAdjustment.of(FOLLOWING, CNBE)).build())
-//                          .fixingDateOffset(DaysAdjustment.ofBusinessDays(-1, CNBE))
-                          .build(),
+                      .accrualFrequency(P3M).accrualBusinessDayAdjustment(BusinessDayAdjustment.of(FOLLOWING, CNBE))
+                      .paymentFrequency(P3M).paymentDateOffset(DaysAdjustment.ofBusinessDays(0, CNBE, BusinessDayAdjustment.of(FOLLOWING, CNBE)))
+                      .compoundingMethod(CompoundingMethod.NONE).currency(CNY).dayCount(ACT_365F)
+                      .resetPeriods(ResetSchedule.builder().resetFrequency(P1W).businessDayAdjustment(BusinessDayAdjustment.NONE).build())
+                      .fixingDateOffset(DaysAdjustment.ofBusinessDays(-1, CNBE, BusinessDayAdjustment.of(PRECEDING, CNBE))).build(),
                   DaysAdjustment.ofBusinessDays(1, CNBE, BusinessDayAdjustment.of(FOLLOWING, CNBE)));
 
 
@@ -193,9 +194,10 @@ final class StandardFixedIborSwapConventions {
           ImmutableFixedIborSwapConvention.of("CNY_REPO_1W_1M_A365F",
                   FixedRateSwapLegConvention.of(CNY, ACT_365F, P1M, BusinessDayAdjustment.of(MODIFIED_FOLLOWING, CNBE)),
                   IborRateSwapLegConvention.builder().index(IborIndices.CNY_REPO_1W).stubConvention(StubConvention.SHORT_FINAL)
-                          .paymentFrequency(P1M).accrualFrequency(P1M).compoundingMethod(CompoundingMethod.NONE).currency(CNY).dayCount(ACT_365F)
-                          .resetPeriods(ResetSchedule.builder().resetFrequency(P1W).businessDayAdjustment(BusinessDayAdjustment.of(FOLLOWING, CNBE)).build())
-//                          .fixingDateOffset(DaysAdjustment.ofBusinessDays(-1, CNBE))
-                          .build(),
+                      .accrualFrequency(P1M).accrualBusinessDayAdjustment(BusinessDayAdjustment.of(FOLLOWING, CNBE))
+                      .paymentFrequency(P1M).paymentDateOffset(DaysAdjustment.ofBusinessDays(0, CNBE, BusinessDayAdjustment.of(FOLLOWING, CNBE)))
+                      .compoundingMethod(CompoundingMethod.NONE).currency(CNY).dayCount(ACT_365F)
+                      .resetPeriods(ResetSchedule.builder().resetFrequency(P1W).businessDayAdjustment(BusinessDayAdjustment.NONE).build())
+                      .fixingDateOffset(DaysAdjustment.ofBusinessDays(-1, CNBE, BusinessDayAdjustment.of(PRECEDING, CNBE))).build(),
                   DaysAdjustment.ofBusinessDays(1, CNBE, BusinessDayAdjustment.of(FOLLOWING, CNBE)));
 }
