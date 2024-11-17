@@ -1,6 +1,8 @@
 package com.opengamma.strata.pricer.curve;
 
+import static com.opengamma.strata.collect.Guavate.filtering;
 import static com.opengamma.strata.collect.Guavate.toImmutableList;
+import static com.opengamma.strata.collect.Guavate.toImmutableMap;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -21,7 +23,9 @@ import com.opengamma.strata.basics.index.Index;
 import com.opengamma.strata.collect.ArgChecker;
 import com.opengamma.strata.collect.Messages;
 import com.opengamma.strata.collect.array.DoubleArray;
+import com.opengamma.strata.collect.timeseries.LocalDateDoubleTimeSeries;
 import com.opengamma.strata.data.MarketData;
+import com.opengamma.strata.data.MarketDataFxRateProvider;
 import com.opengamma.strata.market.ValueType;
 import com.opengamma.strata.market.curve.Curve;
 import com.opengamma.strata.market.curve.CurveDefinition;
@@ -33,6 +37,7 @@ import com.opengamma.strata.market.curve.InterpolatedNodalCurve;
 import com.opengamma.strata.market.curve.RatesCurveGroupDefinition;
 import com.opengamma.strata.market.curve.interpolator.CurveExtrapolators;
 import com.opengamma.strata.market.curve.interpolator.CurveInterpolators;
+import com.opengamma.strata.market.observable.IndexQuoteId;
 import com.opengamma.strata.math.impl.rootfinding.newton.NewtonDefaultVectorRootFinder;
 import com.opengamma.strata.math.rootfind.NewtonVectorRootFinder;
 import com.opengamma.strata.pricer.DiscountFactors;
@@ -75,6 +80,21 @@ public final class CfetsRatesCurveBootstrap {
 	public static CfetsRatesCurveBootstrap of(NewtonVectorRootFinder rootFinder) {
 		return new CfetsRatesCurveBootstrap(rootFinder);
 	}
+
+  public ImmutableRatesProvider bootstrap(
+      RatesCurveGroupDefinition curveGroupDefn,
+      MarketData marketData,
+      ReferenceData refData) {
+
+    Map<Index, LocalDateDoubleTimeSeries> timeSeries = marketData.getTimeSeriesIds().stream()
+                                                           .flatMap(filtering(IndexQuoteId.class))
+                                                           .collect(toImmutableMap(id -> id.getIndex(), id -> marketData.getTimeSeries(id)));
+    ImmutableRatesProvider knownData = ImmutableRatesProvider.builder(marketData.getValuationDate())
+                                           .fxRateProvider(MarketDataFxRateProvider.of(marketData))
+                                           .timeSeries(timeSeries)
+                                           .build();
+    return bootstrap(ImmutableList.of(curveGroupDefn), knownData, marketData, refData);
+  }
 
 	public ImmutableRatesProvider bootstrap(List<RatesCurveGroupDefinition> allGroupDefns,
 			ImmutableRatesProvider knownData, MarketData marketData, ReferenceData refData) {
