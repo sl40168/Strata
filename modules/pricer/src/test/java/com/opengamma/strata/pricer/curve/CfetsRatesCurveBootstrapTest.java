@@ -143,51 +143,51 @@ public class CfetsRatesCurveBootstrapTest {
         QuoteId.of(StandardId.of(schema, n1d))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_1W)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_1M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_1M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n1w))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_1M)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_1M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_1M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n1m))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_3M)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n3m))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_6M)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n6m))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_9M)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n9m))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_1Y)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n1y))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_2Y)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n2y))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_3Y)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n3y))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_4Y)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n4y))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_5Y)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n5y))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_7Y)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n7y))));
     nodes.add(FixedIborSwapCurveNode.of(
         FixedIborSwapTemplate.builder().tenor(Tenor.TENOR_10Y)
-            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ofDays(1)).build(),
+            .convention(FixedIborSwapConventions.CNY_REPO_1W_3M_A365F).periodToStart(Period.ZERO).build(),
         QuoteId.of(StandardId.of(schema, n10y))));
 
     return InterpolatedNodalCurveDefinition.builder().nodes(nodes).name(CurveName.of(curveName))
