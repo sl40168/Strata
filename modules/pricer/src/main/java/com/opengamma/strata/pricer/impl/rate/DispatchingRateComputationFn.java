@@ -43,7 +43,8 @@ public class DispatchingRateComputationFn
   public static final DispatchingRateComputationFn DEFAULT = new DispatchingRateComputationFn(
       ForwardIborRateComputationFn.DEFAULT,
       ForwardIborInterpolatedRateComputationFn.DEFAULT,
-      ForwardIborAveragedRateComputationFn.DEFAULT,
+//      ForwardIborAveragedRateComputationFn.DEFAULT,
+      CfetsForwardIborAveragedRateComputationFn.DEFAULT,
       ForwardOvernightCompoundedRateComputationFn.DEFAULT,
       ForwardOvernightCompoundedAnnualRateComputationFn.DEFAULT,
       ApproxForwardOvernightAveragedRateComputationFn.DEFAULT,
