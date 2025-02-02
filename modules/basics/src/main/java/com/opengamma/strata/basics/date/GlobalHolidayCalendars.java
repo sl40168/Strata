@@ -370,7 +370,7 @@ final class GlobalHolidayCalendars {
   }
 
   // generate USGS
-  // http://www.sifma.org/services/holiday-schedule/
+  // https://www.sifma.org/resources/general/holiday-schedule/
   static ImmutableHolidayCalendar generateUsGovtSecurities() {
     List<LocalDate> holidays = new ArrayList<>(2000);
     for (int year = 1950; year <= 2099; year++) {
@@ -404,7 +404,7 @@ final class GlobalHolidayCalendars {
 
   //-------------------------------------------------------------------------
   // generate NYFD
-  // http://www.ny.frb.org/aboutthefed/holiday_schedule.html
+  // https://www.newyorkfed.org/aboutthefed/holiday_schedule.html
   static ImmutableHolidayCalendar generateNewYorkFed() {
     List<LocalDate> holidays = new ArrayList<>(2000);
     for (int year = 1950; year <= 2099; year++) {
@@ -496,6 +496,7 @@ final class GlobalHolidayCalendars {
     holidays.add(date(2007, 1, 2));  // Death of Gerald Ford
     holidays.add(date(2012, 10, 30));  // Hurricane Sandy
     holidays.add(date(2018, 12, 5));  // Death of George H.W. Bush
+    holidays.add(date(2025, 1, 9));  // Death of Jimmy Carter
     removeSatSun(holidays);
     return ImmutableHolidayCalendar.of(HolidayCalendarIds.NYSE, holidays, SATURDAY, SUNDAY);
   }
@@ -1209,6 +1210,7 @@ final class GlobalHolidayCalendars {
   // http://www.planalto.gov.br/ccivil_03/leis/l0662.htm
   // http://www.planalto.gov.br/ccivil_03/Leis/L6802.htm
   // http://www.planalto.gov.br/ccivil_03/leis/2002/L10607.htm
+  // https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14759.htm
   static ImmutableHolidayCalendar generateBrazil() {
     // base law is from 1949, reworded in 2002
     List<LocalDate> holidays = new ArrayList<>(2000);
@@ -1236,6 +1238,10 @@ final class GlobalHolidayCalendars {
       holidays.add(date(year, 11, 2));
       // republic
       holidays.add(date(year, 11, 15));
+      // Dia Nacional de Zumbi e da Consciência Negra
+      if (year >= 2024) {
+        holidays.add(date(year, 11, 20));
+      }
       // christmas
       holidays.add(date(year, 12, 25));
     }
