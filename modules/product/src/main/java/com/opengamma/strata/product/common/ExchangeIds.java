@@ -168,6 +168,15 @@ public final class ExchangeIds {
   /** NSE International Exchange. */
   public static final ExchangeId INSE = ExchangeId.of("INSE");
 
+  /** TAIWAN Futures Exchange. */
+  public static final ExchangeId XTAF = ExchangeId.of("XTAF");
+
+  /** Thailand Futures Exchange. */
+  public static final ExchangeId TFEX = ExchangeId.of("TFEX");
+
+  /** Borsa Istanbul Exchange. */
+  public static final ExchangeId XIST = ExchangeId.of("XIST");
+
   //-------------------------------------------------------------------------
   /**
    * Restricted constructor.
